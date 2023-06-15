@@ -1,0 +1,4 @@
+node-name: "PgoudetSW"
+node-ip: "192.168.56.111"
+server: https://192.168.56.110:6443
+token: "secret"

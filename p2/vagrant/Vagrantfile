@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "hashicorp/bionic64"
+
+  config.vm.define "pgoudetS" do |control1|
+    control1.vm.hostname = "pgoudetS"
+    control1.vm.network "private_network", ip: "192.168.56.110"
+    control1.vm.synced_folder "../server", "/data/shared"
+    control1.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--name", "PgoudetS"]
+      v.memory = 1024
+      v.cpus = 2
+    end
+    control1.vm.provision "shell", inline: "sudo sh /data/shared/k3s_server.sh"
+  end
+  # config.vm.define "app-one" do |control2|
+  #   control2.vm.hostname = "app-one"
+  #   control2.vm.network "private_network", ip: "192.168.56.111"
+  #   control2.vm.synced_folder "../app-one", "/data/shared"
+  #   control2.vm.provider "virtualbox" do |v|
+  #     v.customize ["modifyvm", :id, "--name", "app-one"]
+  #     v.memory = 2048
+  #     v.cpus = 2
+  #   end
+  #   control2.vm.provision "shell", inline: "sudo sh /data/shared/k3s_app-one.sh"
+  # end
+end
