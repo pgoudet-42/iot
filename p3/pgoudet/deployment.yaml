@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: willapp
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: willapp
+  template:
+    metadata:
+      labels:
+        app: willapp
+    spec:
+      containers:
+      - image: docker.io/wil42/playground:v1
+        name: willapp
+        ports:
+        - containerPort: 8888
