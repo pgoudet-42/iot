@@ -33,23 +33,27 @@ done
 kubectl create namespace argocd
 
 sleep 1
-kubectl apply -f argocd.yaml -n argocd
+kubectl apply -f install-argocd.yaml -n argocd
+# sleep 1
+# kubectl apply -f config-argocd.yaml -n argocd
 sleep 1
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 sleep 1
 kubectl apply -f ingress.yaml -n argocd
 sleep 15
-PASS=$(/usr/local/bin/argocd admin -n argocd initial-password)
+PASS=$(/usr/local/bin/argocd admin -n argocd initial-password --grpc-web)
 PASS=${PASS%%" "*}
 sleep 15
-/usr/local/bin/argocd login 172.20.0.3 --username admin --password $PASS --insecure 
+/usr/local/bin/argocd login 172.20.0.3 --username admin --password $PASS --insecure  --grpc-web
 sleep 15
-/usr/local/bin/argocd account update-password --account admin --current-password $PASS --new-password "Thepassw0rd"
-echo 333
+/usr/local/bin/argocd account update-password --account admin --current-password $PASS --new-password "Thepassw0rd" --grpc-web
 sleep 10
 
 kubectl create namespace dev
 kubectl config set-context --current --namespace=argocd
-/usr/local/bin/argocd app create willsapp --repo https://github.com/pgoudet-42/pgoudet-willsapp.git --path app --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
-sleep 15
+/usr/local/bin/argocd app create willsapp --repo https://github.com/pgoudet-42/pgoudet-willsapp.git \
+--path app --dest-server https://kubernetes.default.svc \
+--dest-namespace dev --sync-policy auto \
+--self-heal --auto-prune --grpc-web 
+sleep 10
 kubectl patch svc willsapp -n dev -p '{"spec": {"type": "LoadBalancer"}}'
