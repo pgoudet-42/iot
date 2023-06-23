@@ -17,33 +17,41 @@ then
     rm argocd-linux-amd64
 fi
 
-# --subnet "172.20.0.0/16"
-# k3d cluster create pgoudet --api-port 127.0.0.1:6445  --port '8080:80@loadbalancer'  --k3s-arg="--disable=traefik@server:0"
 k3d cluster create pgoudet --port 8080:80@loadbalancer --port 8443:443@loadbalancer --port 8888:8888@loadbalancer --subnet "172.20.0.0/16"
 
 READY=$(kubectl get deployment metrics-server -n kube-system)
 READY=${READY:71:1}
-echo "metrics-server status READY = $READY\n"
+echo "metrics-server status READY = $READY"
 while [ $READY -eq 0 ]
 do
     sleep 1
+    READY=$(kubectl get deployment metrics-server -n kube-system)
+    READY=${READY:71:1}
+    echo "metrics-server status READY = $READY"
 done
 
 kubectl create namespace argocd
 
+sleep 1
 kubectl apply -f argocd.yaml -n argocd
+sleep 1
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+sleep 1
 kubectl apply -f ingress.yaml -n argocd
-PASS=$(argocd admin initial-password -n argocd)
+sleep 15
+PASS=$(/usr/local/bin/argocd admin -n argocd initial-password)
 PASS=${PASS%%" "*}
-argocd login 172.20.0.3 --username admin --password $PASS --insecure 
-argocd account update-password --account admin --current-password $PASS --new-password "Thepassw0rd"
-CLUSTER=$(kubectl config get-contexts -o name)
-argocd cluster add $CLUSTER -y
+sleep 15
+echo 111
+/usr/local/bin/argocd login 172.20.0.3 --username admin --password $PASS --insecure 
+echo 222
+sleep 15
+/usr/local/bin/argocd account update-password --account admin --current-password $PASS --new-password "Thepassw0rd"
+echo 333
+sleep 10
 
 kubectl create namespace dev
-
 kubectl config set-context --current --namespace=argocd
-argocd app create willsapp --repo https://github.com/pgoudet-42/pgoudet-willsapp.git --path app --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
-
-
+/usr/local/bin/argocd app create willsapp --repo https://github.com/pgoudet-42/pgoudet-willsapp.git --path app --dest-server https://kubernetes.default.svc --dest-namespace dev --sync-policy auto
+sleep 15
+kubectl patch svc willsapp -n dev -p '{"spec": {"type": "LoadBalancer"}}'
