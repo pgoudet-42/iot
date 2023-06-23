@@ -42,9 +42,7 @@ sleep 15
 PASS=$(/usr/local/bin/argocd admin -n argocd initial-password)
 PASS=${PASS%%" "*}
 sleep 15
-echo 111
 /usr/local/bin/argocd login 172.20.0.3 --username admin --password $PASS --insecure 
-echo 222
 sleep 15
 /usr/local/bin/argocd account update-password --account admin --current-password $PASS --new-password "Thepassw0rd"
 echo 333
